@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Session Created</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="result-container">
+        <div class="result-icon">✓</div>
+        <h1>Session Initialized</h1>
+        <div class="result-data" id="output">
+            
+        </div>
+        <div class="links">
+            <a href="profile.html">View Profile Dashboard</a> | <a href="index.html">Back Home</a>
+        </div>
+    </div>
+
+    <script>
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+
+        if (username) {
+            
+            localStorage.setItem('user', username);
+            localStorage.setItem('lastAction', 'Logged in successfully at ' + new Date().toLocaleTimeString());
+            
+            
+            document.cookie = `username=${username}; max-age=3600; path=/`;
+
+            document.getElementById('output').innerHTML = `
+                <div class="result-item"><span class="result-label">User:</span> <span class="result-value">${username}</span></div>
+                <div class="result-item"><span class="result-label">Method:</span> <span class="result-value">LocalStorage (Session)</span></div>
+            `;
+        } else {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Saved</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="result-container">
+        <div class="result-icon">👤</div>
+        <h1>Account Saved</h1>
+        <p>Your display name has been stored in a cookie.</p>
+        <div class="result-data" id="output"></div>
+        <div class="links">
+            <a href="read-cookie.html">Verify Cookie</a> | <a href="index.html">Home</a>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('accountName') || urlParams.get('username');
+
+        if (name) {
+            // Set cookie valid for 1 hour
+            document.cookie = `account_name=${encodeURIComponent(name)}; max-age=3600; path=/`;
+
+            document.getElementById('output').innerHTML = `
+                <div class="result-item"><span class="result-label">Status:</span> <span class="result-value">Success</span></div>
+                <div class="result-item"><span class="result-label">Stored Name:</span> <span class="result-value">${name}</span></div>
+            `;
+        } else {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

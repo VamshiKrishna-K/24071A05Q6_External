@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Manager | Web State</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid var(--primary);
+        }
+        .transaction-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .transaction-desc {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .transaction-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .transaction-amount {
+            font-weight: 700;
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar State Inspector -->
+        <aside class="sidebar">
+            <div class="inspector-section">
+                <h3 class="inspector-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    LocalStorage (Transactions)
+                </h3>
+                <div id="session-list"></div>
+            </div>
+
+            <div class="inspector-section">
+                <h3 class="inspector-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                    Active Cookies (Account)
+                </h3>
+                <div id="cookie-list"></div>
+            </div>
+
+            <button onclick="clearState()" style="background: #ef4444; margin-top: 1rem;">Reset Data</button>
+        </aside>
+
+        <!-- Main Dashboard -->
+        <main class="main-content">
+            <div class="dashboard">
+                <header class="header">
+                    <h1>Transaction Manager</h1>
+                    <p>Track your spending with LocalStorage & Cookies</p>
+                </header>
+
+                <div class="grid">
+                    <!-- Add Transaction Card -->
+                    <section class="card">
+                        <h2>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+                            New Transaction
+                        </h2>
+                        <form id="transactionForm">
+                            <div class="form-group">
+                                <label for="desc">Description</label>
+                                <input type="text" id="desc" placeholder="e.g. Grocery, Rent..." required>
+                            </div>
+                            <div class="form-group">
+                                <label for="amount">Amount ($)</label>
+                                <input type="text" id="amount" placeholder="0.00" required>
+                            </div>
+                            <button type="submit">Add to Session</button>
+                            <div class="links">
+                                <a href="profile.html">View All History</a>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- Account Card -->
+                    <section class="card">
+                        <h2>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                            Account Context
+                        </h2>
+                        <form id="cookieForm">
+                            <div class="form-group">
+                                <label for="accountName">Display Name</label>
+                                <input type="text" id="accountName" placeholder="Your name..." required>
+                            </div>
+                            <button type="submit" style="background: #10b981;">Save to Cookie</button>
+                            <div class="links">
+                                <a href="read-cookie.html">Verify Cookie Data</a>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+
+                <div class="card" style="margin-top: 2rem;">
+                    <h2>Recent Activity</h2>
+                    <div id="recent-transactions">
+                        <div class="state-empty">No transactions yet.</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function updateStateInspector() {
+            // Update LocalStorage Inspector
+            const sessionList = document.getElementById('session-list');
+            sessionList.innerHTML = '';
+            if (localStorage.length === 0) {
+                sessionList.innerHTML = '<div class="state-empty">No data in storage</div>';
+            } else {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    sessionList.innerHTML += `
+                        <div class="state-badge">
+                            <span class="state-key">${key}:</span> ${value}
+                        </div>
+                    `;
+                }
+            }
+
+            // Update Recent Transactions UI
+            const recentDiv = document.getElementById('recent-transactions');
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            
+            if (transactions.length === 0) {
+                recentDiv.innerHTML = '<div class="state-empty">No transactions yet.</div>';
+            } else {
+                recentDiv.innerHTML = transactions.slice(-3).reverse().map(t => `
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <span class="transaction-desc">${t.desc}</span>
+                            <span class="transaction-date">${t.date}</span>
+                        </div>
+                        <span class="transaction-amount">$${parseFloat(t.amount).toFixed(2)}</span>
+                    </div>
+                `).join('');
+            }
+
+            // Update Cookies Inspector
+            const cookieList = document.getElementById('cookie-list');
+            cookieList.innerHTML = '';
+            const cookies = document.cookie.split('; ');
+            if (!document.cookie) {
+                cookieList.innerHTML = '<div class="state-empty">No cookies stored</div>';
+            } else {
+                cookies.forEach(c => {
+                    const [key, value] = c.split('=');
+                    cookieList.innerHTML += `
+                        <div class="state-badge">
+                            <span class="state-key">${key}:</span> ${decodeURIComponent(value)}
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        document.getElementById('transactionForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const desc = document.getElementById('desc').value;
+            const amount = document.getElementById('amount').value;
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            
+            transactions.push({
+                desc,
+                amount,
+                date: new Date().toLocaleString()
+            });
+            
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            localStorage.setItem('last_transaction_desc', desc);
+            
+            e.target.reset();
+            updateStateInspector();
+        });
+
+        document.getElementById('cookieForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('accountName').value;
+            document.cookie = `account_name=${encodeURIComponent(name)}; path=/; max-age=3600`;
+            updateStateInspector();
+        });
+
+        function clearState() {
+            localStorage.clear();
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i];
+                const eqPos = cookie.indexOf("=");
+                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+            }
+            updateStateInspector();
+        }
+
+        // Initialize
+        updateStateInspector();
+    </script>
+</body>
+</html>

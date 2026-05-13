@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transaction History</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            text-align: left;
+        }
+        .transaction-table th {
+            padding: 1rem;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .transaction-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .amount-cell {
+            font-weight: 700;
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-container" id="main-content" style="max-width: 800px;">
+        
+    </div>
+
+    <script>
+        // Read cookie
+        const getCookie = (name) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+            return "Guest";
+        };
+        
+        const accountName = getCookie('account_name');
+        const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+        const container = document.getElementById('main-content');
+
+        let transactionsHTML = '';
+        if (transactions.length === 0) {
+            transactionsHTML = '<p style="padding: 2rem; color: var(--text-muted);">No transactions recorded yet.</p>';
+        } else {
+            transactionsHTML = `
+                <table class="transaction-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${transactions.reverse().map(t => `
+                            <tr>
+                                <td style="font-size: 0.85rem; color: var(--text-muted);">${t.date}</td>
+                                <td style="font-weight: 600;">${t.desc}</td>
+                                <td class="amount-cell">$${parseFloat(t.amount).toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        container.innerHTML = `
+            <div class="result-icon">📊</div>
+            <h1>Transaction History</h1>
+            <p>Welcome back, <strong>${accountName}</strong></p>
+            
+            <div class="result-data" style="background: white; border: 1px solid var(--border);">
+                ${transactionsHTML}
+            </div>
+
+            <div class="links"><a href="index.html">Add New Transaction</a></div>
+        `;
+    </script>
+</body>
+</html>
